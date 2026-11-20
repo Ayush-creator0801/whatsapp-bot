@@ -1,8 +1,9 @@
 """
 server.py - connects WhatsApp to the bot.
 
-Meta sends every incoming WhatsApp message to /webhook. We pass the text to
-brain.answer() and send the reply back through the WhatsApp Cloud API.
+Meta sends every incoming WhatsApp message to /webhook. We pass the text, plus the
+earlier messages of that chat, to brain.answer() and send the reply back through
+the WhatsApp Cloud API.
 """
 
 import os
@@ -21,8 +22,12 @@ WHATSAPP_TOKEN = os.environ.get("WHATSAPP_TOKEN", "")
 PHONE_NUMBER_ID = os.environ.get("PHONE_NUMBER_ID", "")
 GRAPH_URL = f"https://graph.facebook.com/v25.0/{PHONE_NUMBER_ID}/messages"
 
+# How many past messages to remember per customer (5 questions + 5 answers).
+MAX_HISTORY_MESSAGES = 10
+
 app = Flask(__name__)
 seen_message_ids = set()  # stops us replying twice if Meta re-sends a message
+histories = {}  # phone number -> list of ("user"/"model", text)
 
 
 @app.get("/")
@@ -74,8 +79,12 @@ def incoming():
 
 def handle(sender, text):
     print(f"[in]  {sender}: {text}")
-    reply = answer(text)
+    history = histories.get(sender, [])
+    reply = answer(text, history)
     print(f"[out] {reply}")
+    histories[sender] = (history + [("user", text), ("model", reply)])[
+        -MAX_HISTORY_MESSAGES:
+    ]
     send_text(sender, reply)
 
 
