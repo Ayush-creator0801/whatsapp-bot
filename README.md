@@ -61,3 +61,11 @@ If you get a "model not found" or "high demand" error, change `MODEL` in `brain.
 - Host it on an always-on server with a permanent access token
 - Collect parent name and class of interest and send leads to the owner
 - Store chat history in a database
+
+
+## Chatbot Demo
+
+Here is the chatbot answering real customer
+questions through WhatsApp.
+
+![WhatsApp Chatbot Demo](Screenshot%202026-11-21%20204624.png)
